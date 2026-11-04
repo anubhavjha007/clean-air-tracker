@@ -1,0 +1,1074 @@
+<!doctype html>
+<html lang="en" data-theme="cleanair">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Clean Air Accountability Tracker</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- DaisyUI -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css"
+    rel="stylesheet"
+    type="text/css"
+  >
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+  <!-- Leaflet -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    crossorigin=""
+  >
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    [data-theme="cleanair"] {
+      --p: 158 64% 32%;
+      --pc: 0 0% 100%;
+      --s: 27 87% 55%;
+      --a: 199 89% 48%;
+      --n: 215 28% 17%;
+      --b1: 210 20% 98%;
+      --b2: 0 0% 100%;
+      --b3: 214 15% 91%;
+    }
+
+    body {
+      font-family:
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        "Segoe UI",
+        sans-serif;
+    }
+
+    .mono {
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+</head>
+
+<body class="bg-base-100 min-h-screen">
+
+  <!-- ================================================= -->
+  <!-- HEADER -->
+  <!-- ================================================= -->
+
+  <header class="border-b border-base-300 bg-base-100 sticky top-0 z-20">
+
+    <div class="max-w-7xl mx-auto px-4 py-4">
+
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4" style="position: static">
+
+        <div>
+
+          <h1 class="text-xl md:text-2xl font-bold tracking-tight">
+            Clean Air Accountability Tracker
+          </h1>
+
+          <p class="text-sm text-base-content/60 mt-1">
+            An accountability layer for India's city clean-air action plans
+          </p>
+
+        </div>
+
+        <nav class="flex gap-2">
+
+          <button
+            id="nav-overview"
+            class="btn btn-sm btn-primary"
+          >
+            Overview
+          </button>
+
+          <button
+            id="nav-city"
+            class="btn btn-sm btn-ghost"
+          >
+            City Detail
+          </button>
+
+        </nav>
+
+      </div>
+
+    </div>
+
+  </header>
+
+
+  <main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- ================================================= -->
+    <!-- DATA NOTE -->
+    <!-- ================================================= -->
+
+    <div class="alert alert-info mb-6 text-sm">
+
+      <span>
+
+        <strong>Prototype data note:</strong>
+        PM2.5 source-contribution figures are based on the
+        report's source-apportionment data. Action ownership,
+        budgets and some plan-status fields are prototype data
+        used to demonstrate the accountability engine.
+
+      </span>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- OVERVIEW -->
+    <!-- ================================================= -->
+
+    <section id="view-overview">
+
+      <!-- TOP STATS -->
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+        <div class="card bg-base-200 shadow-sm">
+
+          <div class="card-body p-5">
+
+            <span class="text-xs uppercase tracking-wide text-base-content/50">
+              Cities tracked
+            </span>
+
+            <span
+              id="stat-count"
+              class="text-3xl font-bold mono"
+            >
+              –
+            </span>
+
+            <span class="text-xs text-base-content/50">
+              Prototype coverage
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="card bg-base-200 shadow-sm">
+
+          <div class="card-body p-5">
+
+            <span class="text-xs uppercase tracking-wide text-base-content/50">
+              Avg. robustness score
+            </span>
+
+            <span
+              id="stat-avg"
+              class="text-3xl font-bold mono"
+            >
+              –
+            </span>
+
+            <span class="text-xs text-base-content/50">
+              Out of 100
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="card bg-base-200 shadow-sm">
+
+          <div class="card-body p-5">
+
+            <span class="text-xs uppercase tracking-wide text-base-content/50">
+              Regional risk
+            </span>
+
+            <span
+              id="stat-regional"
+              class="text-3xl font-bold mono text-warning"
+            >
+              –
+            </span>
+
+            <span class="text-xs text-base-content/50">
+              Cities requiring coordination
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="card bg-base-200 shadow-sm">
+
+          <div class="card-body p-5">
+
+            <span class="text-xs uppercase tracking-wide text-base-content/50">
+              Duplicate-plan flags
+            </span>
+
+            <span
+              id="stat-duplicate"
+              class="text-3xl font-bold mono text-warning"
+            >
+              –
+            </span>
+
+            <span class="text-xs text-base-content/50">
+              Potentially copied plans
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- OVERVIEW CHART -->
+
+      <div class="card bg-base-200 shadow-sm mb-6">
+
+        <div class="card-body">
+
+          <h2 class="card-title text-base">
+            Robustness score by city
+          </h2>
+
+          <p class="text-sm text-base-content/60 mb-4">
+            Score based on four governance pillars:
+            legal mandate, accountability clarity,
+            source-data integration and budgeting.
+          </p>
+
+          <div class="chart-container">
+            <canvas id="chart-overview"></canvas>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- CITY TABLE -->
+
+      <div class="card bg-base-200 shadow-sm">
+
+        <div class="card-body p-0">
+
+          <div class="p-5 pb-3">
+
+            <h2 class="font-bold">
+              City comparison
+            </h2>
+
+            <p class="text-sm text-base-content/60">
+              Identify weak plans, regional risks and duplicate-plan flags.
+            </p>
+
+          </div>
+
+          <div class="overflow-x-auto">
+
+            <table class="table">
+
+              <thead>
+
+                <tr>
+                  <th>City</th>
+                  <th>State</th>
+                  <th>Score</th>
+                  <th>Outside contribution</th>
+                  <th>Regional risk</th>
+                  <th>Duplicate</th>
+                  <th></th>
+                </tr>
+
+              </thead>
+
+              <tbody id="overview-table-body"></tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ================================================= -->
+    <!-- CITY DETAIL -->
+    <!-- ================================================= -->
+
+    <section id="view-city" class="hidden">
+
+      <!-- CITY SELECTOR -->
+
+      <div class="flex flex-wrap items-center gap-3 mb-6">
+
+        <select
+          id="city-select"
+          class="select select-bordered select-sm"
+        ></select>
+
+        <div
+          id="score-badge"
+          class="badge badge-lg badge-primary mono"
+        >
+          Score: –
+        </div>
+
+        <div
+          id="regional-badge"
+          class="badge badge-lg badge-warning hidden"
+        >
+          ⚠ Needs regional coordination
+        </div>
+
+        <div
+          id="duplicate-badge"
+          class="badge badge-lg badge-warning hidden"
+        >
+          ⚠ Potential duplicate plan
+        </div>
+
+        <div
+          id="aqi-badge"
+          class="badge badge-lg badge-outline mono"
+        >
+          Live AQI: loading…
+        </div>
+
+      </div>
+
+
+      <!-- ================================================= -->
+      <!-- SCORE + PLAN HEALTH -->
+      <!-- ================================================= -->
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+
+        <!-- SCORE EXPLANATION -->
+
+        <div class="card bg-base-200 shadow-sm">
+
+          <div class="card-body">
+
+            <h2 class="card-title text-base">
+              📊 Score explanation
+            </h2>
+
+            <p class="text-sm text-base-content/60 mb-4">
+              See exactly why the plan received its score.
+            </p>
+
+            <div id="score-summary">
+              Loading…
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- PLAN DOCTOR -->
+
+        <div class="card bg-base-200 shadow-sm">
+
+          <div class="card-body">
+
+            <h2 class="card-title text-base">
+              🩺 Plan Doctor
+            </h2>
+
+            <p class="text-sm text-base-content/60 mb-4">
+              Automatically identifies governance and implementation gaps.
+            </p>
+
+            <div id="plan-doctor">
+              Loading…
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ================================================= -->
+      <!-- AI POLICY ADVISOR -->
+      <!-- ================================================= -->
+
+      <div class="card bg-base-200 shadow-sm mb-6 community-source-mapping">
+
+        <div class="card-body">
+
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
+
+            <div>
+
+              <h2 class="card-title text-base">
+                🤖 AI Policy Advisor
+              </h2>
+
+              <p class="text-sm text-base-content/60">
+                Generate practical recommendations from this city's plan data.
+              </p>
+
+            </div>
+
+            <button
+              id="btn-ai-advice"
+              type="button"
+              class="btn btn-sm btn-primary"
+            >
+              Get AI Advice
+            </button>
+
+          </div>
+
+          <div id="ai-advice-result" class="mt-4">
+            <p class="text-sm text-base-content/50">
+              Select a city and request policy advice.
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ================================================= -->
+      <!-- CHARTS -->
+      <!-- ================================================= -->
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+
+        <!-- SOURCE CONTRIBUTION -->
+
+        <div class="card bg-base-200 shadow-sm">
+
+          <div class="card-body">
+
+            <h2 class="card-title text-base">
+              PM2.5 source contribution
+            </h2>
+
+            <p class="text-sm text-base-content/60 mb-3">
+              Source-apportionment data from the report.
+            </p>
+
+            <div class="chart-container chart-large">
+              <canvas id="chart-sources"></canvas>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- SCORE BREAKDOWN -->
+
+        <div class="card bg-base-200 shadow-sm">
+
+          <div class="card-body">
+
+            <h2 class="card-title text-base">
+              Four-pillar breakdown
+            </h2>
+
+            <p class="text-sm text-base-content/60 mb-3">
+              Each pillar contributes up to 25 points.
+            </p>
+
+            <div class="chart-container chart-large">
+              <canvas id="chart-breakdown"></canvas>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ================================================= -->
+      <!-- ACTION COMPLETENESS -->
+      <!-- ================================================= -->
+
+      <div class="card bg-base-200 shadow-sm mb-6 simulator-panel">
+
+        <div class="card-body">
+
+          <h2 class="card-title text-base">
+            🎯 Action completeness
+          </h2>
+
+          <p class="text-sm text-base-content/60">
+            Measures whether actions have clear ownership,
+            roles, status and budget.
+          </p>
+
+          <div
+            id="action-completeness"
+            class="mt-4"
+          ></div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ================================================= -->
+      <!-- WHAT IF SIMULATOR -->
+      <!-- ================================================= -->
+
+      <div class="card bg-base-200 shadow-sm mb-6">
+
+        <div class="card-body">
+
+          <h2 class="card-title text-base">
+            📈 Plan Improvement Simulator
+          </h2>
+
+          <p class="text-sm text-base-content/60 mb-4">
+            Simulate what happens if major governance gaps are fixed.
+          </p>
+
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+
+            <label class="label cursor-pointer justify-start gap-3">
+
+              <input
+                id="sim-legal"
+                type="checkbox"
+                class="checkbox checkbox-primary"
+              >
+
+              <span class="label-text">
+                Add legal mandate
+              </span>
+
+            </label>
+
+
+            <label class="label cursor-pointer justify-start gap-3">
+
+              <input
+                id="sim-accountability"
+                type="checkbox"
+                class="checkbox checkbox-primary"
+              >
+
+              <span class="label-text">
+                Assign clear owners
+              </span>
+
+            </label>
+
+
+            <label class="label cursor-pointer justify-start gap-3">
+
+              <input
+                id="sim-source"
+                type="checkbox"
+                class="checkbox checkbox-primary"
+              >
+
+              <span class="label-text">
+                Add source-apportionment data
+              </span>
+
+            </label>
+
+
+            <label class="label cursor-pointer justify-start gap-3">
+
+              <input
+                id="sim-budget"
+                type="checkbox"
+                class="checkbox checkbox-primary"
+              >
+
+              <span class="label-text">
+                Add budget allocation
+              </span>
+
+            </label>
+
+          </div>
+
+
+          <button
+  id="btn-simulate"
+  type="button"
+  class="btn btn-primary btn-sm mt-4"
+  onclick="directSimulate()"
+>
+  Simulate improvement
+</button>
+
+          <div
+            id="simulation-result"
+            class="mt-4"
+          ></div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ================================================= -->
+      <!-- COMMUNITY SOURCE MAPPING -->
+      <!-- ================================================= -->
+
+      <div class="card bg-base-200 shadow-sm mb-6 community-source-mapping">
+
+        <div class="card-body">
+
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
+
+            <div>
+              <h2 id="community-map-title" class="card-title text-base">
+                Community Source Mapping
+              </h2>
+
+              <p id="community-map-subtitle" class="text-sm text-base-content/60">
+                Reported pollution sources in the selected city.
+              </p>
+            </div>
+
+            <button
+              id="btn-report-pollution"
+              type="button"
+              class="btn btn-sm btn-primary"
+            >
+              + Report Pollution
+            </button>
+
+          </div>
+
+          <div id="observation-success" class="hidden alert alert-success mb-3"></div>
+
+          <h3 class="community-section-heading">
+            Community Source Map
+          </h3>
+
+          <div id="observation-summary" class="observation-summary mb-2"></div>
+
+          <div id="hotspot-summary" class="hotspot-summary mb-2"></div>
+
+          <div id="hotspot-action-matches" class="hotspot-action-matches"></div>
+
+          <div class="observation-map-shell mb-3">
+            <div id="observation-map" class="observation-map"></div>
+            <div id="observation-map-empty" class="observation-map-empty hidden">
+              <strong>No community observations yet.</strong>
+              <span>Report a pollution source to begin mapping local patterns.</span>
+            </div>
+          </div>
+
+          <div class="observation-legend mb-3" aria-label="Pollution source legend">
+            <span class="observation-legend-item">
+              <span class="observation-legend-swatch observation-source-traffic"></span>
+              Traffic
+            </span>
+            <span class="observation-legend-item">
+              <span class="observation-legend-swatch observation-source-dust"></span>
+              Dust
+            </span>
+            <span class="observation-legend-item">
+              <span class="observation-legend-swatch observation-source-open-burning"></span>
+              Open burning
+            </span>
+            <span class="observation-legend-item">
+              <span class="observation-legend-swatch observation-source-industrial-smoke"></span>
+              Industrial smoke
+            </span>
+          </div>
+
+          <h3 class="community-section-heading observation-list-heading">
+            Recent Observations
+          </h3>
+
+          <div id="observations-list" class="mt-3"></div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ================================================= -->
+      <!-- ACTION TRACKER -->
+      <!-- ================================================= -->
+
+      <div class="card bg-base-200 shadow-sm">
+
+        <div class="card-body">
+
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
+
+            <div>
+
+              <h2 class="card-title text-base">
+                Action tracker
+              </h2>
+
+              <p class="text-sm text-base-content/60">
+                Every action should have one accountable agency and one role.
+              </p>
+
+            </div>
+
+            <button
+              id="btn-add-action"
+              class="btn btn-sm btn-primary"
+            >
+              + Add action
+            </button>
+
+          </div>
+
+
+          <div class="overflow-x-auto mt-3">
+
+            <table class="table table-sm">
+
+              <thead>
+
+                <tr>
+                  <th>Action</th>
+                  <th>Sector</th>
+                  <th>Agency</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Budget</th>
+                  <th></th>
+                </tr>
+
+              </thead>
+
+              <tbody id="actions-table-body"></tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- ================================================= -->
+  <!-- ADD ACTION MODAL -->
+  <!-- ================================================= -->
+
+  <dialog
+    id="add-action-modal"
+    class="modal"
+  >
+
+    <div class="modal-box">
+
+      <h3 class="font-bold text-lg mb-4">
+        Add mitigation action
+      </h3>
+
+      <p id="action-gap-context" class="hidden text-sm text-base-content/60 mb-3"></p>
+
+
+      <div class="grid grid-cols-1 gap-3">
+
+
+        <input
+          id="f-title"
+          class="input input-bordered input-sm"
+          placeholder="Action title"
+        >
+
+
+        <input
+          id="f-sector"
+          class="input input-bordered input-sm"
+          placeholder="Sector — Transport, Industry, Dust, Waste..."
+        >
+
+
+        <select
+          id="f-agency"
+          class="select select-bordered select-sm"
+        >
+
+          <option value="">Choose responsible agency</option>
+          <option>PCB</option>
+          <option>ULB</option>
+          <option>Transport Dept</option>
+          <option>PWD</option>
+          <option>Other</option>
+          <option selected>Shared/Unclear</option>
+
+        </select>
+
+
+        <select
+          id="f-role"
+          class="select select-bordered select-sm"
+        >
+
+          <option value="">
+            — no role assigned —
+          </option>
+
+          <option>Planning</option>
+          <option>Implementing</option>
+          <option>Enforcing</option>
+          <option>Monitoring</option>
+
+        </select>
+
+
+        <select
+          id="f-status"
+          class="select select-bordered select-sm"
+        >
+
+          <option>Not Started</option>
+          <option>In Progress</option>
+          <option>Done</option>
+
+        </select>
+
+
+        <input
+          id="f-budget"
+          type="number"
+          min="0"
+          class="input input-bordered input-sm"
+          placeholder="Budget in INR"
+        >
+
+      </div>
+
+
+      <div class="modal-action">
+
+        <button
+          id="btn-cancel-action"
+          class="btn btn-sm"
+        >
+          Cancel
+        </button>
+
+        <button
+          id="btn-save-action"
+          class="btn btn-sm btn-primary"
+        >
+          Save action
+        </button>
+
+      </div>
+
+    </div>
+
+  </dialog>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+
+  <!-- ================================================= -->
+  <!-- REPORT POLLUTION MODAL -->
+  <!-- ================================================= -->
+
+  <dialog id="report-pollution-modal" class="modal">
+
+    <div class="modal-box">
+
+      <h3 class="font-bold text-lg mb-4">
+        Report pollution observation
+      </h3>
+
+      <form id="pollution-form" class="grid grid-cols-1 gap-3">
+
+        <select id="observation-source-type" class="select select-bordered select-sm" required>
+          <option value="" disabled selected>Source type</option>
+          <option value="traffic">Traffic</option>
+          <option value="dust">Dust</option>
+          <option value="open-burning">Open burning</option>
+          <option value="industrial-smoke">Industrial smoke</option>
+        </select>
+
+        <div class="grid grid-cols-2 gap-3">
+          <input id="observation-latitude" type="number" step="any" min="-90" max="90" class="input input-bordered input-sm" placeholder="Latitude" required>
+          <input id="observation-longitude" type="number" step="any" min="-180" max="180" class="input input-bordered input-sm" placeholder="Longitude" required>
+        </div>
+
+        <input id="observation-time" type="datetime-local" class="input input-bordered input-sm" required>
+
+        <select id="observation-intensity" class="select select-bordered select-sm" required>
+          <option value="" disabled selected>Intensity</option>
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+
+        <input id="observation-duration" type="number" min="1" step="1" class="input input-bordered input-sm" placeholder="Duration in minutes" required>
+
+        <div class="modal-action">
+          <button id="btn-cancel-pollution" type="button" class="btn btn-sm">Cancel</button>
+          <button id="btn-save-pollution" type="submit" class="btn btn-sm btn-primary">Submit report</button>
+        </div>
+
+      </form>
+
+    </div>
+
+  </dialog>
+
+
+  <!-- ================================================= -->
+  <!-- APP JS -->
+  <!-- ================================================= -->
+<script>
+async function directSimulate() {
+  console.log("DIRECT SIMULATOR CLICKED");
+
+  const citySelect = document.getElementById("city-select");
+  const resultBox = document.getElementById("simulation-result");
+
+  if (!citySelect) {
+    alert("city-select not found");
+    return;
+  }
+
+  if (!resultBox) {
+    alert("simulation-result not found");
+    return;
+  }
+
+  const cityId = citySelect.value;
+
+  const changes = {
+    addLegalMandate:
+      document.getElementById("sim-legal")?.checked === true,
+
+    improveAccountability:
+      document.getElementById("sim-accountability")?.checked === true,
+
+    addSourceData:
+      document.getElementById("sim-source")?.checked === true,
+
+    addBudget:
+      document.getElementById("sim-budget")?.checked === true
+  };
+
+  if (!Object.values(changes).some(Boolean)) {
+    resultBox.innerHTML = `
+      <div class="alert alert-warning">
+        Select at least one improvement.
+      </div>
+    `;
+    return;
+  }
+
+  resultBox.innerHTML = `
+    <div class="alert alert-info">
+      Calculating...
+    </div>
+  `;
+
+  try {
+    const response = await fetch(
+      "/api/cities/" +
+      encodeURIComponent(cityId) +
+      "/simulate",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(changes)
+      }
+    );
+
+    const result = await response.json();
+
+    console.log("SIMULATOR RESULT:", result);
+
+    if (!response.ok) {
+      throw new Error(result.error || "Simulation failed");
+    }
+
+    resultBox.innerHTML = `
+      <div class="bg-base-100 rounded-xl p-5 border border-base-300">
+
+        <div class="text-sm opacity-60">
+          Projected robustness score
+        </div>
+
+        <div class="flex items-center gap-4 mt-2">
+
+          <div class="text-3xl font-bold">
+            ${result.currentScore}
+          </div>
+
+          <div class="text-2xl opacity-40">
+            →
+          </div>
+
+          <div class="text-3xl font-bold text-primary">
+            ${result.projectedScore}
+          </div>
+
+        </div>
+
+        <div class="mt-3">
+          <span class="badge badge-success">
+            +${result.improvement} points
+          </span>
+        </div>
+
+      </div>
+    `;
+
+  } catch (error) {
+
+    console.error("SIMULATION ERROR:", error);
+
+    resultBox.innerHTML = `
+      <div class="alert alert-error">
+        ${error.message}
+      </div>
+    `;
+  }
+}
+</script>
+  <script src="app.js"></script>
+
+</body>
+</html>
